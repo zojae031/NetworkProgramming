@@ -4,7 +4,7 @@
 
 // 플랫폼: VS2017
 
-// 작동하는 도메인 네임: "www.acmicpc.net","www.naver.com","www.sejong.ac.kr"
+// 작동하는 도메인 네임: "www.google.com","www.naver.com","www.sejong.ac.kr"
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 최신 VC++ 컴파일 시 경고 방지
 #pragma comment(lib, "ws2_32")
@@ -93,9 +93,11 @@ BOOL GetIPAddr(char *name, IN_ADDR *addr)
 	memcpy(addr, ptr->h_addr, ptr->h_length);
 	return TRUE;
 }
+
+
 int main(int argc, char *argv[])
 {
-	const char* host_name[] = {"www.acmicpc.net","www.naver.com","www.sejong.ac.kr"};
+	const char* host_name[] = {"www.google.com","www.naver.com","www.sejong.ac.kr"};
 	int retval;
 
 	// 윈속 초기화
@@ -120,7 +122,7 @@ int main(int argc, char *argv[])
 	int addrlen;
 	char buf[BUFSIZE + 1];
 	int len;
-
+	
 	while (1) {
 		// accept()
 		clientAccept(&addrlen, &clientaddr,&client_sock,&listen_sock);
@@ -156,28 +158,40 @@ int main(int argc, char *argv[])
 
 			//저장된 주소인지 아닌지 판별
 			IN_ADDR addr;
+			hostent * host;
 			char * result = NULL;
 
 			for (int i = 0; i < sizeof(host_name) / sizeof(host_name[0]); i++) {
 				
 				if (strcmp(buf, host_name[i]) == 0) {
 					result = buf;
+
 					if (GetIPAddr(const_cast<char*>(result), &addr)) {
-						printf("IP 주소 변환 = %s\n", inet_ntoa(addr));
+						host= gethostbyname(result);
+						printf("Host_Name : %s\n", host->h_name);
+						for (int i = 0; host->h_addr_list[i]; i++) {
+							printf("IP주소 : ");
+							puts(inet_ntoa(*(struct in_addr*)host->h_addr_list[i]));
+						}
+					
+						for (int i = 0; host->h_aliases[i]; i++) {
+							printf("별명 : ");
+							puts(host->h_aliases[i]);
+						}
+						
 					}
 				}
 			}
-
+			
 
 			const char * sendData = "잘못된 정보가 입력 되었습니다.\n";
 			if (result == NULL) {
 				printf("%s",sendData);
+				
 			}
 			else {
-				// 받은 데이터 출력
-				printf("[받은 데이터 : TCP/%s:%d] %s\n", inet_ntoa(clientaddr.sin_addr),
-					ntohs(clientaddr.sin_port), buf);
-				sendData = inet_ntoa(addr);
+				sendData = buf;
+				
 			}
 			len = strlen(sendData);
 		
