@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 {
 
 	int retval;
-	const char * sendData = "잘못된 정보가 입력 되었습니다.\n";
+	
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -149,8 +149,12 @@ int main(int argc, char *argv[])
 				err_display(const_cast<char *>("recv()"));
 				break;
 			}
-			else if (retval == 0)
-				break;
+			else if (retval == 0) {
+
+			}
+				
+			
+				
 			buf[retval] = '\0';
 
 			//종료 식별코드
@@ -159,7 +163,7 @@ int main(int argc, char *argv[])
 			//저장된 주소인지 아닌지 판별
 			IN_ADDR addr;
 			hostent * host=NULL;
-
+			const char * sendData = "잘못된 정보가 입력 되었습니다.\n";
 
 
 
