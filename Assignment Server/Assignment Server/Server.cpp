@@ -4,7 +4,7 @@
 
 // 플랫폼: VS2017
 
-// 작동하는 도메인 네임: "www.google.com","www.naver.com","www.sejong.ac.kr"
+// 작동하는 도메인 네임: "www.google.com","www.naver.com","www.sejong.ac.kr, "www.github.com", "www.daum.net"
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 최신 VC++ 컴파일 시 경고 방지
 #pragma comment(lib, "ws2_32")
@@ -97,9 +97,9 @@ BOOL GetIPAddr(char *name, IN_ADDR *addr)
 
 int main(int argc, char *argv[])
 {
-	const char* host_name[] = {"www.google.com","www.naver.com","www.sejong.ac.kr"};
-	int retval;
 
+	int retval;
+	const char * sendData = "잘못된 정보가 입력 되었습니다.\n";
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -122,10 +122,10 @@ int main(int argc, char *argv[])
 	int addrlen;
 	char buf[BUFSIZE + 1];
 	int len;
-	
+
 	while (1) {
 		// accept()
-		clientAccept(&addrlen, &clientaddr,&client_sock,&listen_sock);
+		clientAccept(&addrlen, &clientaddr, &client_sock, &listen_sock);
 
 
 		// 접속한 클라이언트 정보 출력
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 			if (retval == SOCKET_ERROR) {
 				err_display(const_cast<char *>("recv()"));
 				break;
-			} 
+			}
 			else if (retval == 0)
 				break;
 
@@ -158,47 +158,99 @@ int main(int argc, char *argv[])
 
 			//저장된 주소인지 아닌지 판별
 			IN_ADDR addr;
-			hostent * host;
-			char * result = NULL;
+			hostent * host=NULL;
 
-			for (int i = 0; i < sizeof(host_name) / sizeof(host_name[0]); i++) {
-				
-				if (strcmp(buf, host_name[i]) == 0) {
-					result = buf;
 
-					if (GetIPAddr(const_cast<char*>(result), &addr)) {
-						host= gethostbyname(result);
-						printf("Host_Name : %s\n", host->h_name);
-						for (int i = 0; host->h_addr_list[i]; i++) {
-							printf("IP주소 : ");
-							puts(inet_ntoa(*(struct in_addr*)host->h_addr_list[i]));
-						}
-					
-						for (int i = 0; host->h_aliases[i]; i++) {
-							printf("별명 : ");
-							puts(host->h_aliases[i]);
-						}
-						
+
+
+
+
+			if (GetIPAddr(const_cast<char*>(buf), &addr)) {
+				host = gethostbyname(buf);
+
+				/***** HOST_NAME보내기 *****/
+				printf("Host_Name : %s\n", host->h_name);
+				len = strlen(host->h_name);
+				sendData = host->h_name;
+				// 데이터 보내기(고정 길이)
+				retval = send(client_sock, (char *)&len, sizeof(int), 0);
+				if (retval == SOCKET_ERROR) {
+					err_display(const_cast<char *>("send()"));
+					break;
+				}
+
+				// 데이터 보내기(가변 길이)
+				retval = send(client_sock, sendData, len, 0);
+				if (retval == SOCKET_ERROR) {
+					err_display(const_cast<char *>("send()"));
+					break;
+				}
+
+				/***** IP 주소 보내기 *****/
+				for (int i = 0; host->h_addr_list[i]; i++) {
+					printf("IP주소 : ");
+					puts(inet_ntoa(*(struct in_addr*)host->h_addr_list[i]));
+
+					len = strlen(inet_ntoa(*(struct in_addr*)host->h_addr_list[i]));
+					sendData = inet_ntoa(*(struct in_addr*)host->h_addr_list[i]);
+					// 데이터 보내기(고정 길이)
+					retval = send(client_sock, (char *)&len, sizeof(int), 0);
+					if (retval == SOCKET_ERROR) {
+						err_display(const_cast<char *>("send()"));
+						break;
+					}
+
+					// 데이터 보내기(가변 길이)
+					retval = send(client_sock, sendData, len, 0);
+					if (retval == SOCKET_ERROR) {
+						err_display(const_cast<char *>("send()"));
+						break;
+					}
+
+
+				}
+
+				/***** 별명 보내기 *****/
+				for (int i = 0; host->h_aliases[i]; i++) {
+					printf("별명 : ");
+					puts(host->h_aliases[i]);
+
+					len = strlen(host->h_aliases[i]);
+					sendData = host->h_aliases[i];
+					// 데이터 보내기(고정 길이)
+					retval = send(client_sock, (char *)&len, sizeof(int), 0);
+					if (retval == SOCKET_ERROR) {
+						err_display(const_cast<char *>("send()"));
+						break;
+					}
+
+					// 데이터 보내기(가변 길이)
+					retval = send(client_sock, sendData, len, 0);
+					if (retval == SOCKET_ERROR) {
+						err_display(const_cast<char *>("send()"));
+						break;
 					}
 				}
-			}
-			
 
-			const char * sendData = "잘못된 정보가 입력 되었습니다.\n";
-			if (result == NULL) {
-				printf("%s",sendData);
-				
+			}
+
+
+
+
+
+			if (host == NULL) {
+				printf("%s", sendData);
+
 			}
 			else {
-				sendData = buf;
-				
+				sendData = "end\0";
+
 			}
 			len = strlen(sendData);
-		
 
-			//공식명칭, 별명, 모든 IPv4주소 보내기
-			
-			
+
+
+
 			// 데이터 보내기(고정 길이)
 			retval = send(client_sock, (char *)&len, sizeof(int), 0);
 			if (retval == SOCKET_ERROR) {
@@ -219,7 +271,7 @@ int main(int argc, char *argv[])
 		closesocket(client_sock);
 		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
 			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
-		
+
 		break;
 	}
 

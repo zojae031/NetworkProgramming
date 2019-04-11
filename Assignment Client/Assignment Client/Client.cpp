@@ -4,7 +4,7 @@
 
 // 플랫폼: VS2017
 
-// 작동하는 도메인 네임: "www.google.com","www.naver.com","www.sejong.ac.kr"
+// 작동하는 도메인 네임: "www.google.com","www.naver.com","www.sejong.ac.kr, "www.github.com", "www.daum.net"
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 최신 VC++ 컴파일 시 경고 방지
 #pragma comment(lib, "ws2_32")
@@ -122,47 +122,42 @@ int main(int argc, char *argv[])
 			break;
 		}
 		memset(buf, 0, sizeof(buf));
-		// 데이터 받기 (고정길이)
-		retval = recvn(sock, (char *)&len, sizeof(int), 0);
-		if (retval == SOCKET_ERROR) {
-			err_display(const_cast<char *>("recv()"));
-			break;
-		}
-		else if (retval == 0)
-			break;
 
+		while (strcmp(buf, "end") != 0) {
+
+			// 데이터 받기 (고정길이)
+			retval = recvn(sock, (char *)&len, sizeof(int), 0);
+			if (retval == SOCKET_ERROR) {
+				err_display(const_cast<char *>("recv()"));
+				break;
+			}
+			else if (retval == 0)
+				break;
+
+
+
+			// 데이터 받기(가변 길이)
+			retval = recvn(sock, buf, len, 0);
+			if (retval == SOCKET_ERROR) {
+				err_display(const_cast<char *>("recv()"));
+				break;
+			}
+			else if (retval == 0)
+				break;
+
+			buf[retval] = '\0';
+
+
+			// 받은 데이터 출력
+			if (strcmp(buf, "잘못된 정보가 입력 되었습니다.\n") == 0) {
+				printf("[받은 데이터] %s\n", buf);
+				break;
+			}
+			else {
+				printf("%s\n", buf);
 	
-
-		// 데이터 받기(가변 길이)
-		retval = recvn(sock, buf, len, 0);
-		if (retval == SOCKET_ERROR) {
-			err_display(const_cast<char *>("recv()"));
-			break;
-		}
-		else if (retval == 0)
-			break;
-
-		buf[retval] = '\0';
-
-
-		// 받은 데이터 출력
-		if (strcmp(buf, "잘못된 정보가 입력 되었습니다.\n") == 0) {
-			printf("[받은 데이터] %s\n", buf);
-		}
-		else {
-			hostent *host = gethostbyname(buf);
-			printf("Host_Name : %s\n", host->h_name);
-			for (int i = 0; host->h_addr_list[i]; i++) {
-				printf("IP주소 : ");
-				puts(inet_ntoa(*(struct in_addr*)host->h_addr_list[i]));
-			}
-
-			for (int i = 0; host->h_aliases[i]; i++) {
-				printf("별명 : ");
-				puts(host->h_aliases[i]);
 			}
 		}
-		
 		
 
 
