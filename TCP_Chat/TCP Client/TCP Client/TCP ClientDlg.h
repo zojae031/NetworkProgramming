@@ -1,4 +1,8 @@
-﻿
+﻿// 2019년 1학기 네트워크프로그래밍 숙제 3번
+
+// 성명: 조재영 학번: 14011038
+
+// 플랫폼: VS2017
 // TCP ClientDlg.h: 헤더 파일
 //
 
@@ -21,7 +25,7 @@ private:
 // 생성입니다.
 public:
 	CTCPClientDlg(CWnd* pParent = nullptr);	// 표준 생성자입니다.
-
+	~CTCPClientDlg() { delete client; };
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_TCPCLIENT_DIALOG };
@@ -47,4 +51,5 @@ public:
 	afx_msg void OnBnClickedButton3();
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedButton5();
+	afx_msg void OnBnClickedCancel();
 };

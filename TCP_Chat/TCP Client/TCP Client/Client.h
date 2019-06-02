@@ -1,5 +1,9 @@
 #pragma once
+// 2019년 1학기 네트워크프로그래밍 숙제 3번
 
+// 성명: 조재영 학번: 14011038
+
+// 플랫폼: VS2017
 
 #define BUFSIZE    512
 class Client
@@ -25,6 +29,8 @@ public:
 	void connectServer();
 	void sendData(CString data);
 
+	CString getId() { return id; };
+	int getPort() { return port; };
 	void err_quit(char*msg);
 	void err_display(char *msg);
 	static DWORD WINAPI Receiver(LPVOID arg);

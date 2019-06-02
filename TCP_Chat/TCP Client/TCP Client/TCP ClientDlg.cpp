@@ -1,4 +1,8 @@
-﻿
+﻿// 2019년 1학기 네트워크프로그래밍 숙제 3번
+
+// 성명: 조재영 학번: 14011038
+
+// 플랫폼: VS2017
 // TCP ClientDlg.cpp: 구현 파일
 //
 
@@ -42,6 +46,7 @@ BEGIN_MESSAGE_MAP(CTCPClientDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CTCPClientDlg::OnBnClickedButton3)
 	ON_BN_CLICKED(IDOK, &CTCPClientDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUTTON5, &CTCPClientDlg::OnBnClickedButton5)
+	ON_BN_CLICKED(IDCANCEL, &CTCPClientDlg::OnBnClickedCancel)
 END_MESSAGE_MAP()
 
 
@@ -161,8 +166,18 @@ void CTCPClientDlg::OnBnClickedButton3()
 		flags[NUM] = false;
 	}
 	else {
-		flags[NUM] = true;
-		client->setNum(number);
+		int compare = atoi(number);
+		if (compare == 1 || compare == 2) {
+			flags[NUM] = true;
+			MessageBox(_T("성공"), MB_OK);
+			client->setPort(client->getPort()+compare-1);
+			client->setNum(number);
+		}
+		else {
+			MessageBox(_T("1 또는 2를 입력하시오."), MB_OK);
+		}
+		
+		
 	}
 }
 
@@ -187,6 +202,20 @@ void CTCPClientDlg::OnBnClickedButton5()
 {
 	CString t;
 	text.GetWindowText(t);
-	if(t!=""){ client->sendData(t); }
+	if(t!=""){ 
+		CString message;
+		message.Format("%s : %s \r\n", client->getId(), t);
+		client->sendData(message); 
+	}
+	text.SetWindowText("");
 	
+}
+
+
+void CTCPClientDlg::OnBnClickedCancel()
+{
+	CString logout;
+	logout.Format("%s님이 채팅방에서 나가셨습니다.\r\n", client->getId());
+	client->sendData(logout);
+	CDialogEx::OnCancel();
 }
