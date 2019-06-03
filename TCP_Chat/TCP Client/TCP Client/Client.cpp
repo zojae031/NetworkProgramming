@@ -14,7 +14,7 @@ Client::Client()
 }
 
 
-Client::Client(CEdit &box) 
+Client::Client(CEdit &box,CEdit &text) 
 {
 	// 윈속 초기화
 	WSADATA wsa;
@@ -29,6 +29,7 @@ Client::Client(CEdit &box)
 	ZeroMemory(&serveraddr, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	this->box = &box;
+	this->text = &text;
 }
 
 Client::~Client()
@@ -67,7 +68,7 @@ void Client::connectServer()
 	}
 
 	CString login;
-	login.Format("{%s}님이 [%d]방에 입장하셨습니다.\r\n", this->id, atoi(this->num));
+	login.Format("{%s}님이 (%d)방에 입장하셨습니다.\r\n", this->id, atoi(this->num));
 	sendData(login);
 
 	HANDLE hThread;
@@ -125,8 +126,17 @@ DWORD WINAPI Client::Receiver(LPVOID arg)
 		}
 		// 받은 데이터 출력
 		c->buf[c->retval] = '\0';
-		c->message.Append(c->buf);
-		c->box->SetWindowTextA(c->message);
+		int cnt = 0;
+		CString tmp = c->buf;
+		if (tmp.Find("error") != -1) {
+			c->box->SetWindowText("아이디가 중복됩니다.");
+			c->text->EnableWindow(false);
+		}
+		else {
+			c->message.Append(c->buf);
+			c->box->SetWindowTextA(c->message);
+		}
+		
 	}
 	return 1;
 }

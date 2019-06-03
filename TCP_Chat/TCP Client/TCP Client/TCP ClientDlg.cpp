@@ -21,10 +21,10 @@
 
 
 CTCPClientDlg::CTCPClientDlg(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_TCPCLIENT_DIALOG, pParent)
-{
+	: CDialogEx(IDD_TCPCLIENT_DIALOG, pParent){
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
+
 
 void CTCPClientDlg::DoDataExchange(CDataExchange* pDX)
 {
@@ -35,6 +35,7 @@ void CTCPClientDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT3, num);
 	DDX_Control(pDX, IDC_EDIT4, chatBox);
 	DDX_Control(pDX, IDC_EDIT5, text);
+	ip.SetAddress(0, 0, 0, 0);
 }
 
 BEGIN_MESSAGE_MAP(CTCPClientDlg, CDialogEx)
@@ -61,7 +62,12 @@ BOOL CTCPClientDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
-	client = new Client(chatBox);
+	client = new Client(chatBox,text);
+
+	
+
+	
+
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -127,8 +133,12 @@ void CTCPClientDlg::OnBnClickedButton2()
 	CString tmp;
 	int int_port=0;
 	port.GetWindowText(tmp);
-	int_port =atoi(tmp);
-	if (int_port!=0) {
+	int_port = atoi(tmp);
+	if (int_port == 0 && strcmp(tmp, "0") != 0) {
+		int_port = -1;
+	}
+	if (int_port<= 65535 && int_port >=0) {
+		
 		client->setPort(int_port);
 		MessageBox(_T("성공"), MB_OK);
 		flags[PORT] = true;
@@ -145,14 +155,29 @@ void CTCPClientDlg::OnBnClickedButton4()
 {
 	CString user;
 	id.GetWindowText(user);
-	if (user == "") {
-		MessageBox(_T("아이디 잘못 입력"), MB_OK);
-		flags[ID] = false;
+	int cnt = 0;
+	for (int i = 0; i < 4; i++) {//플래그 돌리기
+		if (flags[i])cnt++;
+	}
+
+	if (!text.IsWindowEnabled() && cnt == 4) {//text 비활성화고 모든 플래그 on이면
+		if (client->getId() != user) {
+			CString msg = "{" + client->getId() + "} -> [" + user+"]\r\n";
+			text.EnableWindow(true);
+			client->setId(user);
+			client->sendData(msg);
+		}
 	}
 	else {
-		client->setId(user);
-		flags[ID] = true;
-		MessageBox(_T("성공"), MB_OK);
+		if (user == "") {
+			MessageBox(_T("아이디 잘못 입력"), MB_OK);
+			flags[ID] = false;
+		}
+		else {
+			client->setId(user);
+			flags[ID] = true;
+			MessageBox(_T("성공"), MB_OK);
+		}
 	}
 }
 

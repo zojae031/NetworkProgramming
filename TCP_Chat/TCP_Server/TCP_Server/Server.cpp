@@ -110,16 +110,37 @@ DWORD __stdcall Server::serverThread1(LPVOID arg)
 				CString tmp = ptr->buf;
 				int startIndex = tmp.Find("{");
 				int lastIndex = tmp.Find("}");
+				int st_idx = tmp.Find("[");
+				int lt_idx = tmp.Find("]");
 				if (lastIndex > 0) {
 					int idx = 0;
-					for (int l = startIndex+1; l < lastIndex; l++) {
+					for (int l = startIndex + 1; l < lastIndex; l++) {//사용자 id를 저장하는 과정
 						tmp.SetAt(idx++, ptr->buf[l]);
 					}
+					if (lt_idx > 0) {
+					 idx = 0;
+						for (int l = st_idx + 1; l < lt_idx; l++) {//사용자 id를 저장하는 과정
+							tmp.SetAt(idx++, ptr->buf[l]);
+						}
+					}
+					
 					tmp.SetAt(idx, '\0');
 					ptr->id = tmp;
-				}
+					
+					int cnt = 0;
+					for (int k = 0; k < s->nTotalSockets; k++) {//아이디 중복 처리
+						if (strcmp(s->SocketInfoArray[k]->id, tmp) == 0) {
+							cnt++;
+							if (cnt > 1) {
+								send(ptr->sock, "error", strlen("error"), 0);
+							}
+						}
+					}
+					
 
-			
+					
+
+				}
 			}
 			if (FD_ISSET(ptr->sock, &s->wset)) {
 				// 데이터 보내기
@@ -197,13 +218,37 @@ DWORD __stdcall Server::serverThread2(LPVOID arg)
 				CString tmp = ptr->buf;
 				int startIndex = tmp.Find("{");
 				int lastIndex = tmp.Find("}");
+				int st_idx = tmp.Find("[");
+				int lt_idx = tmp.Find("]");
 				if (lastIndex > 0) {
 					int idx = 0;
-					for (int l = startIndex + 1; l < lastIndex; l++) {
+					for (int l = startIndex + 1; l < lastIndex; l++) {//사용자 id를 저장하는 과정
 						tmp.SetAt(idx++, ptr->buf[l]);
 					}
+					if (lt_idx > 0) {
+						idx = 0;
+						for (int l = st_idx + 1; l < lt_idx; l++) {//사용자 id를 저장하는 과정
+							tmp.SetAt(idx++, ptr->buf[l]);
+						}
+					}
+
 					tmp.SetAt(idx, '\0');
 					ptr->id = tmp;
+
+					int cnt = 0;
+					for (int k = 0; k < s->nTotalSockets; k++) {//아이디 중복 처리
+						if (strcmp(s->SocketInfoArray[k]->id, tmp) == 0) {
+							cnt++;
+							if (cnt > 1) {
+								send(ptr->sock, "error", strlen("error"), 0);
+								//s->RemoveSocketInfo(i);
+							}
+						}
+					}
+
+
+
+
 				}
 			}
 			if (FD_ISSET(ptr->sock, &s->wset)) {

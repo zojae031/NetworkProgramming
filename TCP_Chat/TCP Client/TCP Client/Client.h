@@ -6,13 +6,13 @@
 // ÇÃ·§Æû: VS2017
 
 #define BUFSIZE    512
-class Client
+class Client 
 {
 private :
 	SOCKADDR_IN serveraddr;
 	SOCKET sock;
 	CString ip,id, num;
-	CEdit *box;
+	CEdit *box,*text;
 	CString message;
 	char buf[BUFSIZE];
 	int port;
@@ -20,7 +20,7 @@ private :
 
 public:
 	Client();
-	Client(CEdit &box);
+	Client(CEdit &box,CEdit &text);
 	~Client();
 	void setIP(BYTE a, BYTE b, BYTE c, BYTE d);
 	void setPort(int port);
@@ -29,10 +29,12 @@ public:
 	void connectServer();
 	void sendData(CString data);
 
+
 	CString getId() { return id; };
 	int getPort() { return port; };
 	void err_quit(char*msg);
 	void err_display(char *msg);
 	static DWORD WINAPI Receiver(LPVOID arg);
 };
+
 
